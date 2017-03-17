@@ -57,20 +57,24 @@ function fetchUtxos (address, cb) {
   })
 }
 
+var waiting = false;
 function waitForPayment (address, cb) {
   const done = (err, res) => {
     clearInterval(interval)
     cb(err, res)
   }
   const checkForUnspent = () => {
+    if (waiting) return;
+    waiting = true;
     fetchUtxos(address, (err, res) => {
+      waiting = false;
       if (err) return done(err)
       if (res.amount < MINIMUM_AMOUNT) return
       done(null, res)
     })
   }
   // poll once every 6 seconds
-  let interval = setInterval(checkForUnspent, 6000)
+  let interval = setInterval(checkForUnspent, 500)
   checkForUnspent()
 }
 
